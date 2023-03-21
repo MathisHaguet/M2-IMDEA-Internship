@@ -21,20 +21,26 @@ print("Length Bend : {} m".format(LengthBend))
 print("Width Bend  : {} m".format(WidthBend))
 print("Height Bend : {} m ".format(HeightBend))
 
-#%%
+#%% OPEN/CLOSED
+Fr = 50
+Length = QWL(Fr)
+Width = 0.1
+Height = 0.1
 
-TubeREC = RectangularTube(f ,1.7, 0.1, 0.1, 0.01 ,DuctType="Open" )
-TubeCYL = CylindricalTube(f ,1.7, 0.05, 0.01 ,DuctType="Open")
-
-ZREC = TubeREC.Impedance(f)
-ZCYL = TubeCYL.Impedance(f)
+TubeRECopen = RectangularTube(f ,1.7, 0.1, 0.1, 0.01 ,DuctType="Open" )
+TubeRECclosed = RectangularTube(f ,1.7, 0.1, 0.1, 0.01 ,DuctType="Closed" )
 
 plt.figure()
-plt.semilogx(f,10*np.log10(np.abs(ZREC)) , label="Z REC")
-plt.semilogx(f,10*np.log10(np.abs(ZCYL)) , label="Z CYL")
-
+plt.semilogx(f,10*np.log10(np.abs(TubeRECopen.Imp)) ,"k", label="Open")
+plt.semilogx(f,10*np.log10(np.abs(TubeRECclosed.Imp)) ,"b" , label="Closed")
+plt.xlim(20,1000)
 plt.grid(which="both")
+plt.ylabel('Zin [dB]' ,fontsize=13)
+plt.xlabel('Frequency [Hz]',fontsize=13)
+plt.suptitle("RECTANGULAR TUBE",fontsize=13)
+plt.title("L = {} m , W = {} m , H = {} m".format(Length , Width , Height),fontsize=13)
 plt.legend()
+plt.tight_layout()
 plt.show()
 
 #%%
@@ -51,7 +57,6 @@ plt.semilogx(f,10*np.log10(np.abs(Ztest)) , label="Z2")
 plt.grid(which="both")
 plt.legend()
 plt.show()
-
 
 #%%
 TUBES = []
@@ -103,20 +108,29 @@ plt.close("all")
 DATA = np.loadtxt("/Users/mathishaguet/Documents/STAGE - UdeS/CODES/HP_OFFSET.txt")
 
 
-StraightOpenDuct = RectangularTube(f,1.7, 0.1, 0.1, 0.01 , DuctType="Open")
-OpenDuct = RectangularTube(f,1.7*2/3, 0.1, 0.1, 0.01 , DuctType="Open")
-ClosedDuct = RectangularTube(f,1.7/3, 0.1, 0.1, 0.01 , DuctType="Closed")
+# StraightOpenDuct = RectangularTube(f,1.7, 0.1, 0.1, 0.01 , DuctType="Open")
+# OpenDuct = RectangularTube(f,1.7*2/3, 0.1, 0.1, 0.01 , DuctType="Open")
+# ClosedDuct = RectangularTube(f,1.7/3, 0.1, 0.1, 0.01 , DuctType="Closed")
+# ZT = Parallel(OpenDuct.Impedance(f), ClosedDuct.Impedance(f))
+
+
+StraightOpenDuct = CylindricalTube(f, 1.715, 0.1, 0.01,DuctType="Open")
+OpenDuct = CylindricalTube(f, 1.715*2/3, 0.1, 0.01,DuctType="Open")
+ClosedDuct = CylindricalTube(f, 1.715/3, 0.1, 0.01,DuctType="Closed")
 ZT = Parallel(OpenDuct.Impedance(f), ClosedDuct.Impedance(f))
 
+
+
 plt.figure()
-# plt.semilogx(DATA[:,0],DATA[:,1] , label="AKABAK")
-# plt.semilogx(DATA[:,0],DATA[:,2] , label="AKABAK")
+plt.semilogx(DATA[:,0],DATA[:,1] , label="AKABAK Straight Open")
+plt.semilogx(f,20*np.log10(np.real(StraightOpenDuct.Imp)) , label="PYTHON Straight Open")
+plt.legend()
+plt.grid(which="both")
+plt.show()
 
-plt.semilogx(f,10*np.log10(np.abs(StraightOpenDuct.Impedance(f))) , label="Straight Open Duct")
-# plt.semilogx(f,10*np.log10(np.abs(OpenDuct.Impedance(f))) , label="Open Duct")
-# plt.semilogx(f,10*np.log10(np.abs(ClosedDuct.Impedance(f))) , label="Closed Duct")
-plt.semilogx(f,10*np.log10(np.abs(ZT)) ,"k", label="Parallel Duct")
-
+plt.figure()
+plt.semilogx(DATA[:,0],DATA[:,2] , label="AKABAK Closed // Open")
+plt.semilogx(f,20*np.log10(np.real(ZT)) ,"k", label="PYTHON Closed // Open ")
 plt.legend()
 plt.grid(which="both")
 plt.show()
