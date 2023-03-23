@@ -3,8 +3,12 @@ import matplotlib.pyplot as plt
 from ClassFunction import * 
 
 #%%
-f  = np.logspace(np.log10(20),np.log10(5e3),40000)
+# f  = np.logspace(np.log10(20),np.log10(5e3),40000)
 
+DATA_CYL = np.loadtxt("/Users/mathishaguet/Documents/STAGE - UdeS/CODES/CYL_REAL_IMAG_ACOUSTIC_IMP.txt") # REAL & IMAG
+DATA_REC = np.loadtxt("/Users/mathishaguet/Documents/STAGE - UdeS/CODES/REC_REAL_IMAG_SPECIFIC_IMP.txt") # REAL & IMAG
+
+f = DATA_CYL[:,0]
 #==================
 Fr = 50
 WidthHole = 0.05
@@ -27,19 +31,24 @@ Length = QWL(Fr)
 Width = 0.1
 Height = 0.1
 
-TubeRECopen = RectangularTube(f ,1.7, 0.1, 0.1, 0.01 ,DuctType="Open" )
-TubeRECclosed = RectangularTube(f ,1.7, 0.1, 0.1, 0.01 ,DuctType="Closed" )
+REC = RectangularTube(f ,1.7, 0.1, 0.1, 0.01 ,DuctType="Open" )
+CYL = CylindricalTube(f, 1.7, 0.1, 0.01,DuctType="Open")
 
-plt.figure()
-plt.semilogx(f,10*np.log10(np.abs(TubeRECopen.Imp)) ,"k", label="Open")
-plt.semilogx(f,10*np.log10(np.abs(TubeRECclosed.Imp)) ,"b" , label="Closed")
-plt.xlim(20,1000)
-plt.grid(which="both")
-plt.ylabel('Zin [dB]' ,fontsize=13)
-plt.xlabel('Frequency [Hz]',fontsize=13)
-plt.suptitle("RECTANGULAR TUBE",fontsize=13)
-plt.title("L = {} m , W = {} m , H = {} m".format(Length , Width , Height),fontsize=13)
-plt.legend()
+fig , ax = plt.subplots(nrows=2)
+
+ax[0].semilogx(f,20*np.log10(np.abs(REC.Imp)) ,"k", label="REC")
+ax[0].semilogx(f,20*np.log10(np.abs(CYL.Imp)) ,"b", label="CYL")
+ax[0].set_ylabel(r'$\mathbb{R}(Z_{in})$ [dB]' ,fontsize=13)
+
+ax[1].semilogx(f,np.angle(REC.Imp) ,"k", label="REC")
+ax[1].semilogx(f,np.angle(CYL.Imp) ,"b", label="CYL")
+ax[1].set_ylabel(r'$\mathbb{Im}(Z_{in})$ [dB]' ,fontsize=13)
+
+for i in range(2):
+    ax[i].grid(which="both")
+    ax[i].legend()
+    ax[i].set_xlabel('Frequency [Hz]',fontsize=13)
+    
 plt.tight_layout()
 plt.show()
 
@@ -84,8 +93,6 @@ else:
 Test = Connection(f, *TUBES)
 ImpTest = Test.Impedance(f)
 
-
-
 # %%
 # plt.close('all')
 
@@ -105,35 +112,85 @@ plt.show()
 #%%
 plt.close("all")
 
-DATA = np.loadtxt("/Users/mathishaguet/Documents/STAGE - UdeS/CODES/HP_OFFSET.txt")
 
+AKABAK_REC = DATA_REC[:,1] + 1j*DATA_REC[:,2]
+AKABAK_CYL = DATA_CYL[:,1] + 1j*DATA_CYL[:,2] 
 
-# StraightOpenDuct = RectangularTube(f,1.7, 0.1, 0.1, 0.01 , DuctType="Open")
-# OpenDuct = RectangularTube(f,1.7*2/3, 0.1, 0.1, 0.01 , DuctType="Open")
-# ClosedDuct = RectangularTube(f,1.7/3, 0.1, 0.1, 0.01 , DuctType="Closed")
+REC = RectangularTube(f, 1.715, 0.1, 0.1, 0.01, DuctType="Open" )
+CYL = CylindricalTube(f, 1.715, 0.1, 0.01, DuctType="Open")
+
+# OpenDuct = RectangularTube(f,1.715*2/3, 0.1, 0.1, 0.01 , DuctType="Open")
+# ClosedDuct = RectangularTube(f,1.715/3, 0.1, 0.1, 0.01 , DuctType="Closed")
 # ZT = Parallel(OpenDuct.Impedance(f), ClosedDuct.Impedance(f))
 
+# OpenDuct = CylindricalTube(f, 1.715*2/3, 0.1, 0.01,DuctType="Open")
+# ClosedDuct = CylindricalTube(f, 1.715/3, 0.1, 0.01,DuctType="Closed")
+# ZT = Parallel(OpenDuct.Impedance(f), ClosedDuct.Impedance(f))
 
-StraightOpenDuct = CylindricalTube(f, 1.715, 0.1, 0.01,DuctType="Open")
-OpenDuct = CylindricalTube(f, 1.715*2/3, 0.1, 0.01,DuctType="Open")
-ClosedDuct = CylindricalTube(f, 1.715/3, 0.1, 0.01,DuctType="Closed")
-ZT = Parallel(OpenDuct.Impedance(f), ClosedDuct.Impedance(f))
+#==============================================================================
+
+# fig , ax = plt.subplots(nrows=2 , sharex=True)
+
+# ax[0].semilogx(f,20*np.log10(np.abs(ZT)) ,"k" , label = "HP OFFSET 1/3")
+# ax[0].semilogx(f,20*np.log10(np.abs(REC.Imp)) , label = "HP WO OFFSET")
+
+# ax[0].set_ylabel(r'$|Z_{in}|$ [dB]' ,fontsize=13)
 
 
+# ax[1].semilogx(f,np.angle(ZT) ,"k" , label = "HP OFFSET 1/3")
+# ax[1].semilogx(f,np.angle(REC.Imp) , label = "HP WO OFFSET")
 
-plt.figure()
-plt.semilogx(DATA[:,0],DATA[:,1] , label="AKABAK Straight Open")
-plt.semilogx(f,20*np.log10(np.real(StraightOpenDuct.Imp)) , label="PYTHON Straight Open")
-plt.legend()
-plt.grid(which="both")
+# ax[1].set_ylabel(r'$\mathbb{\phi}(Z_{in})$ [rad]' ,fontsize=13)
+
+# for i in range(2):
+#     ax[i].grid(which="both")
+#     ax[i].legend()
+#     ax[i].set_xlabel('Frequency [Hz]',fontsize=13)
+    
+# ax[0].set_title("Rectangular Duct")
+# plt.tight_layout()
+# plt.show()
+
+#==============================================================================
+
+fig , ax = plt.subplots(nrows=2 , sharex=True)
+ax[0].semilogx(f,10*np.log10(np.abs(REC.Imp)/REC.Zc) ,"k", label="PYTHON")
+ax[0].semilogx(f,10*np.log10(np.abs(AKABAK_REC)*REC.Section_In) ,"b", label="AKABAK")
+ax[0].set_ylabel(r'$|Z_{in}|$ [dB]' ,fontsize=13)
+
+ax[1].semilogx(f,np.angle(REC.Imp) ,"k", label="PYTHON")
+ax[1].semilogx(f,np.angle(AKABAK_REC),"b", label="AKABAK")
+ax[1].set_ylabel(r'$\mathbb{\phi}(Z_{in})$ [rad]' ,fontsize=13)
+
+for i in range(2):
+    ax[i].grid(which="both")
+    ax[i].legend()
+    ax[i].set_xlabel('Frequency [Hz]',fontsize=13)
+    
+ax[0].set_title("Rectangular Duct")
+plt.tight_layout()
 plt.show()
 
-plt.figure()
-plt.semilogx(DATA[:,0],DATA[:,2] , label="AKABAK Closed // Open")
-plt.semilogx(f,20*np.log10(np.real(ZT)) ,"k", label="PYTHON Closed // Open ")
-plt.legend()
-plt.grid(which="both")
+#==============================================================================
+
+fig , ax = plt.subplots(nrows=2 , sharex=True)
+ax[0].semilogx(f,10*np.log10(np.abs(CYL.Imp)) ,"k", label="PYTHON")
+ax[0].semilogx(f,10*np.log10(np.abs(AKABAK_CYL)) ,"b", label="AKABAK")
+ax[0].set_ylabel(r'$|Z_{in}|$ [dB]' ,fontsize=13)
+
+ax[1].semilogx(f,np.angle(CYL.Imp) ,"k", label="PYTHON")
+ax[1].semilogx(f,np.angle(AKABAK_CYL),"b", label="AKABAK")
+ax[1].set_ylabel(r'$\mathbb{\phi}(Z_{in})$ [rad]' ,fontsize=13)
+
+for i in range(2):
+    ax[i].grid(which="both")
+    ax[i].legend()
+    ax[i].set_xlabel('Frequency [Hz]',fontsize=13)
+    
+ax[0].set_title("Cylindrical Duct")
+plt.tight_layout()
 plt.show()
+
 
 #%%
 Height = 0.1

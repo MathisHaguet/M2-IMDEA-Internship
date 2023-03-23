@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Air:
     c0 = 343
     rho = 1.204
@@ -41,13 +42,15 @@ class RectangularTube:
         self.Height = Height
         self.Width  = Width
         self.Thickness = Thickness
-        self.Section_In = self.Width * self.Height
+        self.Reff = self.Width/(np.sqrt(np.pi))
+        self.Section_In = np.pi*self.Reff**2
         self.DuctType = DuctType
         self.Section_Out = (self.Height + 2*self.Thickness)+(self.Width + 2*self.Thickness)
         self.f = f
         self.Zc = Air.rho*Air.c0 / self.Section_In
         
         self.T   = self.Transfermatrix(f)
+        self.Z2  = self.Radimp(f)
         self.Imp = self.Impedance(f)
 
         # if self.Section_In != None:
@@ -62,20 +65,22 @@ class RectangularTube:
                        [ 1j*np.sin(K*self.Length)/self.Zc , np.cos(K*self.Length) ]])
         return T
     
-
-    # def Impedance(self,f):
-    #     K = 2*np.pi*f/Air.c0
-    #     Z = Air.rho*Air.c0/(np.pi*self.Section_Out**2)
-    #     ZT = Z/1j*np.tan(K*self.Length)
-    #     return ZT
-    
+    def Radimp(self,f):
+        w = 2*np.pi*f
+        k = w/Air.c0
+        eta = 0.597
+        R = (1 - (k*self.Reff)**2)/2
+        L = eta*self.Reff
+        # Z2 = self.Zc * -1j*np.tan(k*L - 1j*1/2*np.log(np.abs(R)))
+        Z2 = (1-R)/(1+R)
+        return Z2
+        
     def Impedance(self,f):
         Imp = 0
         if self.DuctType == "Open":
-            Imp = self.T[0,1,:] / self.T[1,1,:]
+            Imp = (self.T[0,0,:]*self.Z2 + self.T[0,1,:] )/ (self.T[1,1,:] + self.T[1,0,:]*self.Z2)
         if self.DuctType == "Closed":
             Imp = self.T[0,0,:] / self.T[1,0,:]
-        
         return Imp
     
 class CylindricalTube:
@@ -114,48 +119,26 @@ class CylindricalTube:
         Z2 = 0
         w = 2*np.pi*f
         k = w/Air.c0
-        n1 = 0.167
-        d1 = 1.393
-        d2 = 0.457
-        # n1 = 0.182
-        # d1 = 1.825
-        # d2 = 0.649
-        # Beta = 1/2
-        # eta = 0.6133
-        # a1 = 0.800
-        # a2 = 0.266
-        # a3 = 0.0263
-        # b1 = 0.0599
-        # b2 = 0.238
-        # b3 = 0.0153
-        # b4 = 0.00150
+        Beta = 1/2
+        eta = 0.6133
         
-        Beta = 1
-        eta = 0.8216
-        a1 = 0.730
-        a2 = 0.372
-        a3 = 0.0231
-        b1 = 0.244
-        b2 = 0.723
-        b3 = 0.0198
-        b4 = 0.00366
+        a1 = 0.800
+        a2 = 0.266
+        a3 = 0.0263
+        b1 = 0.0599
+        b2 = 0.238
+        b3 = 0.0153
+        b4 = 0.00150
         
-        # Z2 = self.Zc * (k*self.Radius)**2/2
-        
-        # Z2 = ((n1-d1)*1j*k*self.Radius + d2*(1j*k*self.Radius)**2)/ \
-        #       (2 - (d1+n1)*1j*k*self.Radius + d2*(1j*k*self.Radius)**2)
-
         R = (1 + a1*(k*self.Radius)**2) / \
             (1 + (Beta+a1)*(k*self.Radius)**2 + a2*(k*self.Radius)**4 + a3*(k*self.Radius)**6)
-        
         L = (self.Radius*eta * (1 + b1*(k*self.Radius)**2)) / \
             (1 + b2*(k*self.Radius)**2 + b3*(k*self.Radius)**4 + b4*(k*self.Radius)**6)
-           
-        Z2 = -1j*np.tan(k*L - 1j*1/2*np.log(R))
-        
+        # Z2 = self.Zc*-1j*np.tan(k*L - 1j*1/2*np.log(R))
+        Z2 = self.Zc*(1-R)/(1+R)
+
         return Z2
-
-
+    
     def Impedance(self,f):
         Imp = 0
         if self.DuctType == "Open":
