@@ -71,8 +71,8 @@ class RectangularTube:
         eta = 0.597
         R = (1 - (k*self.Reff)**2)/2
         L = eta*self.Reff
-        # Z2 = self.Zc * -1j*np.tan(k*L - 1j*1/2*np.log(np.abs(R)))
-        Z2 = (1-R)/(1+R)
+        Z2 =  -1j*np.tan(k*L - 1j*1/2*np.log(np.abs(R)))
+        # Z2 = self.Zc*(1-R)/(1+R)
         return Z2
         
     def Impedance(self,f):
@@ -135,7 +135,7 @@ class CylindricalTube:
         L = (self.Radius*eta * (1 + b1*(k*self.Radius)**2)) / \
             (1 + b2*(k*self.Radius)**2 + b3*(k*self.Radius)**4 + b4*(k*self.Radius)**6)
         # Z2 = self.Zc*-1j*np.tan(k*L - 1j*1/2*np.log(R))
-        Z2 = self.Zc*(1-R)/(1+R)
+        Z2 = self.Zc*(1-R)/(1+R) 
 
         return Z2
     
